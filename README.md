@@ -6,6 +6,8 @@
   <img src="https://img.shields.io/badge/90%25%20Vibe%20Coded-purple?style=for-the-badge&logo=github" />
 </p>
 
+Demo: https://bkrajendra.github.io/peerpresent?mode=presenter
+
 ## Features
 
 - **Real-time sync** — Slides and navigation stay in sync for all viewers (WebRTC via PeerJS).
