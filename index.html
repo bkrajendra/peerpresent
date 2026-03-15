@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Workshop - 30 Minutes to Git Good</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- START OVERLAY -->
+<div id="startOverlay" class="overlay">
+  <div class="overlay-content">
+    <h1>Lets Git Good Together</h1>
+    <p>30 Minutes to Git Good</p>
+    
+    <div class="start-options">
+      <div id="presenterStartSection" class="hidden">
+        <button id="startPresenterBtn" class="start-btn primary">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          Start as Presenter
+        </button>
+        <div class="divider-text">or join an existing session</div>
+      </div>
+      
+      <div class="join-section">
+        <input type="text" id="roomCodeInput" class="room-input" placeholder="Enter 4-digit code" maxlength="4" pattern="[0-9]*">
+        <button id="joinSessionBtn" class="start-btn secondary">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+          </svg>
+          Join Session
+        </button>
+      </div>
+    </div>
+    
+    <div id="connectionStatus" class="connection-status"></div>
+  </div>
+</div>
+
+<!-- PRESENTER INFO BAR (shown only to presenter) -->
+<div id="presenterBar" class="presenter-bar hidden">
+  <div class="presenter-info">
+    <span class="presenter-badge">PRESENTER</span>
+    <span class="room-code">Room: <strong id="roomCodeDisplay">----</strong></span>
+  </div>
+  <div class="connected-clients">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+    </svg>
+    <span id="clientCount">0</span> connected
+  </div>
+</div>
+
+<!-- CLIENT INFO BAR (shown only to clients) -->
+<div id="clientBar" class="client-bar hidden">
+  <div class="client-info">
+    <span class="client-badge">VIEWING</span>
+    <span class="sync-status" id="syncStatus">
+      <span class="sync-dot"></span>
+      Synced with presenter
+    </span>
+  </div>
+</div>
+
+<div class="presentation">
+  
+  <!-- SLIDE 0: HERO -->
+  <div class="slide hero-slide active" data-slide="0">
+    <div class="slide-content">
+      <div class="badge">30-MINUTE WORKSHOP</div>
+      <h1>Git <span>Good</span> Together</h1>
+      <p>A hands-on Git workshop with real chaos, real fixes, and real exercises.</p>
+      <div class="meta-pills">
+        <div class="pill"><span class="dot" style="background:#10b981"></span> Beginner-Intermediate</div>
+        <div class="pill"><span class="dot" style="background:#f59e0b"></span> 30 Minutes</div>
+        <div class="pill"><span class="dot" style="background:#7c3aed"></span> 5 Sections</div>
+        <div class="pill"><span class="dot" style="background:#dc2626"></span> 50 Total Marks</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: Section 1 Intro -->
+  <div class="slide" data-slide="1">
+    <div class="slide-content">
+      <div class="section-header">
+        <div class="section-tag">01 &nbsp;·&nbsp; 0:00 - 5:00 MIN</div>
+        <h1 class="section-title">Why Does Git Even Exist?</h1>
+        <p class="section-desc">Setting the stage with a painful story everyone recognises</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: Section 1 Scenario -->
+  <div class="slide" data-slide="2">
+    <div class="slide-content">
+      <div class="scenario">
+        <div class="scenario-label">Real Team Scenario</div>
+        <p><strong>Meet the "DSP-backend" team:</strong> Ravi (dsp), Isha (dsp), Dhaval (QA), and Radhika (DevOps).</p>
+        <br>
+        <p>It's a Friday! Ravi sends <code>final_api_v3_FINAL_USE_THIS.zip</code> on Teams to Isha. Isha accidentally overwrites Ravi's API fix while editing the same file. Dhaval can't reproduce a bug because he doesn't know which version he's testing. Radhika is furious in the corner.</p>
+        <br>
+        <p><strong>Git is the solution to this exact chaos.</strong> It's a version control system - like a magical "time machine + collaboration hub" for your code.</p>
+        <div class="team-row">
+          <div class="avatar">Ravi · Backend</div>
+          <div class="avatar">Isha · Frontend</div>
+          <div class="avatar">Dhaval · QA</div>
+          <div class="avatar">Radhika · DevOps</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Section 1 Core Concepts -->
+  <div class="slide" data-slide="3">
+    <div class="slide-content">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background: var(--accent-light); color: var(--accent);">&#128161;</div>
+          Core Concepts in 60 Seconds
+        </div>
+        <div class="flow">
+          <div class="flow-box">Working Directory</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Staging Area</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Local Repo</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Remote (GitHub)</div>
+        </div>
+        <p style="font-size:14px; color: var(--muted); margin-top: 12px;">Think of it as: <em>Draft → Review Table → Your Bookshelf → Public Library</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Create New Repo (Command Line) -->
+  <div class="slide" data-slide="4">
+    <div class="slide-content">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background: var(--accent-light); color: var(--accent);">&#128260;</div>
+          Create a New Repo from Command Line
+        </div>
+        <p style="font-size:14px; color: var(--text-secondary); margin-bottom: 16px;">Create a new repository on GitHub first (empty, no README), then run these commands locally:</p>
+        <div class="code-block">
+<span class="comment"># 1. Create project folder and enter it</span>
+<span class="cmd">mkdir</span> git-good <span class="flag">&&</span> <span class="cmd">cd</span> git-good
+
+<span class="comment"># 2. Initialize Git repo</span>
+<span class="cmd">git init</span>
+
+<span class="comment"># 3. Create README</span>
+<span class="cmd">echo</span> <span class="ok">"# Git Good"</span> > README.md
+
+<span class="comment"># 4. Stage and commit</span>
+<span class="cmd">git add</span> README.md
+<span class="cmd">git commit</span> <span class="flag">-m</span> <span class="ok">"Initial commit"</span>
+
+<span class="comment"># 5. Rename branch to main (if needed)</span>
+<span class="cmd">git branch</span> <span class="flag">-M</span> <span class="branch">main</span>
+
+<span class="comment"># 6. Add remote and push</span>
+<span class="cmd">git remote add</span> <span class="flag">origin</span> https://github.com/bkrajendra/git-good
+<span class="cmd">git push</span> <span class="flag">-u</span> <span class="flag">origin</span> <span class="branch">main</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Section 1 Exercise -->
+  <div class="slide" data-slide="5">
+    <div class="slide-content">
+      <div class="exercise">
+        <div class="exercise-header">
+          <div class="exercise-title">Exercise 1 - Quick Fire Round</div>
+          <div class="score-badge">10 Marks</div>
+        </div>
+        <ul class="q-list">
+          <li>
+            <span class="q-num">Q1</span>
+            <span>What problem does Git solve that sharing ZIP files via Slack cannot? Name at least 2 problems.</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q2</span>
+            <span>In the Git flow <code>Working Dir → Staging → Local Repo → Remote</code>, which command moves code from <em>Staging → Local Repo</em>?</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q3</span>
+            <span>True or False: Once you <code>git commit</code>, the code is automatically visible on GitHub to your teammates.</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q4</span>
+            <span>Isha says "I'll just email code changes to avoid Git". Give Isha 2 solid reasons why Git is better for a team of 4+.</span>
+            <span class="q-pts">4 pts</span>
+          </li>
+        </ul>
+        <div class="quiz-form-container hidden" id="quizForm-5"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Section 2 Intro -->
+  <div class="slide" data-slide="6">
+    <div class="slide-content">
+      <div class="section-header">
+        <div class="section-tag">02 &nbsp;·&nbsp; 5:00 - 12:00 MIN</div>
+        <h1 class="section-title">The Daily Git Flow</h1>
+        <p class="section-desc">Commands your team will use 90% of the time</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Section 2 Scenario -->
+  <div class="slide" data-slide="7">
+    <div class="slide-content">
+      <div class="scenario">
+        <div class="scenario-label">Scenario: Monday Morning</div>
+        <p>Dev comes in, opens his laptop, and starts coding directly on <code>main</code>… without pulling the latest changes. Priya had pushed a big refactor on Friday. Dev's about to have a very bad time.</p>
+        <br>
+        <p><strong>The Golden Rule: Always <code style="color:var(--accent3)">git pull</code> before you start working.</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: Section 2 Commands -->
+  <div class="slide" data-slide="8">
+    <div class="slide-content">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background: var(--accent-light); color: var(--accent);">&#128203;</div>
+          The Essential Daily Commands
+        </div>
+        <div class="code-block">
+<span class="comment"># 1. Start your day - always pull first!</span>
+<span class="cmd">git pull</span> <span class="flag">origin</span> <span class="branch">main</span>
+
+<span class="comment"># 2. Check what files you've changed</span>
+<span class="cmd">git status</span>
+
+<span class="comment"># 3. See what actually changed line by line</span>
+<span class="cmd">git diff</span>
+
+<span class="comment"># 4. Stage specific files (not everything blindly!)</span>
+<span class="cmd">git add</span> src/login.js
+
+<span class="comment"># 5. Commit with a MEANINGFUL message</span>
+<span class="cmd">git commit</span> <span class="flag">-m</span> <span class="ok">"fix: validate email format on login form"</span>
+
+<span class="comment"># 6. Push to remote</span>
+<span class="cmd">git push</span> <span class="flag">origin</span> <span class="branch">feature/login-fix</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: Section 2 Problem 1 -->
+  <div class="slide" data-slide="9">
+    <div class="slide-content">
+      <div class="problem">
+        <div class="problem-label">Common Issue: "My push was rejected!"</div>
+        <p><strong>What happened:</strong> Sam pushed directly to <code>main</code> but got a rejection because Priya had also pushed in the meantime.</p>
+        <br>
+        <p><strong>The Fix:</strong></p>
+        <div class="code-block">
+<span class="comment"># Pull with rebase (cleaner history)</span>
+<span class="cmd">git pull</span> <span class="flag">--rebase</span> <span class="branch">origin main</span>
+<span class="comment"># Resolve conflicts if any, then:</span>
+<span class="cmd">git push</span> <span class="flag">origin</span> <span class="branch">main</span>
+        </div>
+        <div class="tip">Pro tip: Set <code>git config --global pull.rebase true</code> so rebase is always the default.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: Section 2 Problem 2 -->
+  <div class="slide" data-slide="10">
+    <div class="slide-content">
+      <div class="problem">
+        <div class="problem-label">Common Issue: "I committed to main by accident!"</div>
+        <p><strong>What happened:</strong> Tanu committed a half-finished feature directly to <code>main</code> instead of a feature branch.</p>
+        <div class="code-block">
+<span class="comment"># Undo the last commit, keep your changes staged</span>
+<span class="cmd">git reset</span> <span class="flag">--soft</span> HEAD~1
+
+<span class="comment"># Now switch to proper branch and recommit</span>
+<span class="cmd">git checkout</span> <span class="flag">-b</span> <span class="branch">feature/noors-fix</span>
+<span class="cmd">git commit</span> <span class="flag">-m</span> <span class="ok">"feat: add noor's new feature"</span>
+        </div>
+        <div class="tip">Never use <code>git reset --hard</code> unless you want to permanently discard changes!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: Section 2 Exercise -->
+  <div class="slide" data-slide="11">
+    <div class="slide-content">
+      <div class="exercise">
+        <div class="exercise-header">
+          <div class="exercise-title">Exercise 2 - Fill in the Command</div>
+          <div class="score-badge">10 Marks</div>
+        </div>
+        <ul class="q-list">
+          <li>
+            <span class="q-num">Q1</span>
+            <span>Write the exact sequence of commands Dev should have used Monday morning before starting to code.</span>
+            <span class="q-pts">3 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q2</span>
+            <span>What is the difference between <code>git add .</code> and <code>git add src/login.js</code>? When should you prefer each?</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q3</span>
+            <span>Which commit message is GOOD? a) "fix stuff" b) "WIP" c) "fix: null pointer in user auth when email is empty" d) "changes"</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q4</span>
+            <span>Noor accidentally committed to <code>main</code>. Write the 3-command sequence to undo and move the work to <code>feature/noor-api</code>.</span>
+            <span class="q-pts">3 pts</span>
+          </li>
+        </ul>
+        <div class="quiz-form-container hidden" id="quizForm-11"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: Section 3 Intro -->
+  <div class="slide" data-slide="12">
+    <div class="slide-content">
+      <div class="section-header">
+        <div class="section-tag">03 &nbsp;·&nbsp; 12:00 - 19:00 MIN</div>
+        <h1 class="section-title">Branching - Your Team's Superpower</h1>
+        <p class="section-desc">Work in parallel without stepping on each other</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: Section 3 Scenario -->
+  <div class="slide" data-slide="13">
+    <div class="slide-content">
+      <div class="scenario">
+        <div class="scenario-label">Scenario: Sprint Week</div>
+        <p>The Rocket team has 3 things to ship this week: Priya builds the <em>OAuth login</em>, Dev builds the <em>dashboard redesign</em>, and Sam writes the <em>test suite</em>.</p>
+        <br>
+        <p>If they all work on <code>main</code> - it'll be a disaster movie. With branches? Pure harmony.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: Section 3 Branch Naming -->
+  <div class="slide" data-slide="14">
+    <div class="slide-content">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background: var(--accent4-light); color: var(--accent4);">&#127807;</div>
+          Branch Naming Convention
+        </div>
+        <div class="code-block">
+<span class="comment"># Feature work</span>
+<span class="branch">feature/login-oauth</span>
+<span class="branch">feature/dashboard-v2</span>
+
+<span class="comment"># Bug fixes</span>
+<span class="branch">fix/null-pointer-auth</span>
+<span class="branch">fix/broken-csv-export</span>
+
+<span class="comment"># Experiments / spikes</span>
+<span class="branch">spike/react-18-upgrade</span>
+
+<span class="comment"># Hotfixes on production</span>
+<span class="branch">hotfix/payment-crash-prod</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: Section 3 Branch Lifecycle -->
+  <div class="slide" data-slide="15">
+    <div class="slide-content">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background: var(--accent-light); color: var(--accent);">&#128260;</div>
+          Full Branch Lifecycle
+        </div>
+        <div class="code-block">
+<span class="comment"># 1. Always branch off latest main</span>
+<span class="cmd">git checkout</span> <span class="branch">main</span>
+<span class="cmd">git pull</span> <span class="flag">origin</span> <span class="branch">main</span>
+<span class="cmd">git checkout</span> <span class="flag">-b</span> <span class="branch">feature/login-oauth</span>
+
+<span class="comment"># 2. Work, stage, commit (repeat)</span>
+<span class="cmd">git add</span> <span class="flag">.</span>
+<span class="cmd">git commit</span> <span class="flag">-m</span> <span class="ok">"feat: add google oauth integration"</span>
+
+<span class="comment"># 3. Push branch & open a Pull Request</span>
+<span class="cmd">git push</span> <span class="flag">origin</span> <span class="branch">feature/login-oauth</span>
+
+<span class="comment"># 4. After PR is merged, clean up</span>
+<span class="cmd">git checkout</span> <span class="branch">main</span>
+<span class="cmd">git pull</span> <span class="flag">origin</span> <span class="branch">main</span>
+<span class="cmd">git branch</span> <span class="flag">-d</span> <span class="branch">feature/login-oauth</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: Section 3 Problem -->
+  <div class="slide" data-slide="16">
+    <div class="slide-content">
+      <div class="problem">
+        <div class="problem-label">Common Issue: "My branch is 3 weeks old!"</div>
+        <p>Dev went on a deep coding tangent. His branch is now 47 commits behind <code>main</code>. Merging will be painful.</p>
+        <div class="code-block">
+<span class="comment"># Keep your branch fresh - rebase onto main regularly</span>
+<span class="cmd">git fetch</span> <span class="flag">origin</span>
+<span class="cmd">git rebase</span> <span class="flag">origin/</span><span class="branch">main</span>
+<span class="comment"># Fix any conflicts, then:</span>
+<span class="cmd">git push</span> <span class="flag">--force-with-lease</span>
+        </div>
+        <div class="tip">Rebase at least <strong>once a day</strong> on long-running branches. Your future self will thank you.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: Section 3 Exercise -->
+  <div class="slide" data-slide="17">
+    <div class="slide-content">
+      <div class="exercise">
+        <div class="exercise-header">
+          <div class="exercise-title">Exercise 3 - Scenario Mapping</div>
+          <div class="score-badge">10 Marks</div>
+        </div>
+        <ul class="q-list">
+          <li>
+            <span class="q-num">Q1</span>
+            <span>Write correct branch names for: (a) Sam fixing CSV export bug, (b) Priya experimenting with caching, (c) Noor doing urgent production hotfix.</span>
+            <span class="q-pts">3 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q2</span>
+            <span>Write all commands to: start a new branch <code>feature/dark-mode</code> from main, commit "feat: add dark mode toggle", and push it.</span>
+            <span class="q-pts">3 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q3</span>
+            <span>Dev's branch is 3 days old. Should he <code>git merge main</code> or <code>git rebase origin/main</code>? Explain the difference.</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q4</span>
+            <span>What is the risk of <code>git push --force</code> vs <code>git push --force-with-lease</code>?</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+        </ul>
+        <div class="quiz-form-container hidden" id="quizForm-17"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: Section 4 Intro -->
+  <div class="slide" data-slide="18">
+    <div class="slide-content">
+      <div class="section-header">
+        <div class="section-tag">04 &nbsp;·&nbsp; 19:00 - 25:00 MIN</div>
+        <h1 class="section-title">Merge Conflicts - Don't Panic</h1>
+        <p class="section-desc">The most feared Git moment, demystified</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: Section 4 Scenario -->
+  <div class="slide" data-slide="19">
+    <div class="slide-content">
+      <div class="scenario">
+        <div class="scenario-label">The Conflict Scene</div>
+        <p>Priya and Dev both edited <code>src/utils/auth.js</code> line 42 at the same time. Priya's version checks for a null token. Dev's version adds a new JWT decoder.</p>
+        <br>
+        <p>When Dev pulls and merges - Git doesn't know whose version to keep. Git leaves breadcrumbs to help you decide.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: Section 4 Conflict Example -->
+  <div class="slide" data-slide="20">
+    <div class="slide-content">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background: var(--accent2-light); color: var(--accent2);">&#129513;</div>
+          What a Conflict Looks Like
+        </div>
+        <div class="code-block">
+<span class="comment">// src/utils/auth.js - Git marks the conflict:</span>
+
+<span class="ok">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD  ← YOUR changes (Dev)</span>
+  const token = jwt.decode(req.headers.token);
+<span class="flag">=======   ← dividing line</span>
+  if (!req.headers.token) return null;
+  const token = req.headers.token;
+<span style="color: #f87171">&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main  ← THEIR changes (Priya)</span>
+        </div>
+        <p style="font-size:14px; margin-top: 12px; color: var(--text-secondary);">You need to manually edit this file to combine both intentions, then mark it resolved.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: Section 4 Resolving -->
+  <div class="slide" data-slide="21">
+    <div class="slide-content">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background: var(--accent3-light); color: var(--accent3);">&#9989;</div>
+          Resolving the Conflict
+        </div>
+        <div class="code-block">
+<span class="comment"># After manually fixing the conflict:</span>
+<span class="cmd">git add</span> src/utils/auth.js
+<span class="cmd">git commit</span> <span class="flag">-m</span> <span class="ok">"merge: combine jwt decode + null token check"</span>
+        </div>
+        <div class="tip">Use <code>git mergetool</code> or VS Code's built-in conflict editor for a visual way to resolve.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 21: Section 4 Theirs/Ours -->
+  <div class="slide" data-slide="22">
+    <div class="slide-content">
+      <div class="problem">
+        <div class="problem-label">"I want to throw away MY changes and keep THEIRS"</div>
+        <div class="code-block">
+<span class="comment"># Keep incoming (their) version</span>
+<span class="cmd">git checkout</span> <span class="flag">--theirs</span> src/utils/auth.js
+
+<span class="comment"># Keep your version</span>
+<span class="cmd">git checkout</span> <span class="flag">--ours</span> src/utils/auth.js
+
+<span class="cmd">git add</span> src/utils/auth.js
+<span class="cmd">git commit</span> <span class="flag">-m</span> <span class="ok">"resolve: use upstream auth logic"</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 22: Section 4 Undo Merge -->
+  <div class="slide" data-slide="23">
+    <div class="slide-content">
+      <div class="problem">
+        <div class="problem-label">"I want to completely undo a bad merge!"</div>
+        <div class="code-block">
+<span class="comment"># Find the commit hash before the merge</span>
+<span class="cmd">git log</span> <span class="flag">--oneline</span>
+<span class="comment"># Reset to before the merge (SAFE - keeps your files)</span>
+<span class="cmd">git reset</span> <span class="flag">--merge</span> ORIG_HEAD
+        </div>
+        <div class="tip">Only do this BEFORE pushing. After pushing, use <code>git revert</code> instead - it's safer for shared branches.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 23: Section 4 Exercise -->
+  <div class="slide" data-slide="24">
+    <div class="slide-content">
+      <div class="exercise">
+        <div class="exercise-header">
+          <div class="exercise-title">Exercise 4 - Conflict Resolution</div>
+          <div class="score-badge">10 Marks</div>
+        </div>
+        <ul class="q-list">
+          <li>
+            <span class="q-num">Q1</span>
+            <span>In a merge conflict block, what does <code>HEAD</code> represent and what does <code>origin/main</code> represent?</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q2</span>
+            <span>Sam merges a conflict but forgets to <code>git add</code> the resolved file. What error will Git show?</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q3</span>
+            <span>You got conflicts in 3 files after <code>git merge feature/dark-mode</code>. Write the step-by-step process to resolve.</span>
+            <span class="q-pts">3 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q4</span>
+            <span>Why is <code>git revert</code> preferred over <code>git reset --hard</code> on shared branches?</span>
+            <span class="q-pts">3 pts</span>
+          </li>
+        </ul>
+        <div class="quiz-form-container hidden" id="quizForm-24"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 24: Section 5 Intro -->
+  <div class="slide" data-slide="25">
+    <div class="slide-content">
+      <div class="section-header">
+        <div class="section-tag">05 &nbsp;·&nbsp; 25:00 - 30:00 MIN</div>
+        <h1 class="section-title">Team Best Practices</h1>
+        <p class="section-desc">The unwritten rules that make great teams great</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 25: Section 5 Constitution -->
+  <div class="slide" data-slide="26">
+    <div class="slide-content">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background: var(--accent-light); color: var(--accent);">&#128220;</div>
+          The Confluxsys Team's Git Constitution
+        </div>
+        <div style="display: grid; gap: 16px; margin-top: 8px;">
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <span style="font-size:1.2rem; flex-shrink: 0;">&#128683;</span>
+            <div><strong>Never force-push to main or develop.</strong> It rewrites shared history and will ruin someone's day.</div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <span style="font-size:1.2rem; flex-shrink: 0;">&#128683;</span>
+            <div><strong>Avoid pushing binaries, blobs or large files.</strong> Make sure to maintain a .gitignore file.</div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <span style="font-size:1.2rem; flex-shrink: 0;">&#9989;</span>
+            <div><strong>One thing per commit.</strong> Don't bundle a bug fix, refactor, and new feature together.</div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <span style="font-size:1.2rem; flex-shrink: 0;">&#128221;</span>
+            <div><strong>Use Conventional Commits:</strong> <code>feat:</code>, <code>fix:</code>, <code>docs:</code>, <code>chore:</code>, <code>refactor:</code>, <code>test:</code></div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <span style="font-size:1.2rem; flex-shrink: 0;">&#128269;</span>
+            <div><strong>Review PRs within 24 hours.</strong> Stale PRs become harder to merge over time.</div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <span style="font-size:1.2rem; flex-shrink: 0;">&#128737;</span>
+            <div><strong>Use branch protection on main.</strong> Require at least 1 reviewer. Run CI checks before merge.</div>
+          </div>
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <span style="font-size:1.2rem; flex-shrink: 0;">&#128737;</span>
+            <div><strong>Set you global username/email configuration along with git rebase</div>
+          </div>
+
+        <div class="code-block">
+<span class="comment"># Set global username and email</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> <span class="ok">user.name</span> <span class="ok">"Your Name"</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> <span class="ok">user.email</span> <span class="ok">"your.email@example.com"</span>
+<span class="comment"># set rebase behavior</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> <span class="ok">pull.rebase</span> <span class="ok">true</span>
+        </div>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 26: Section 5 Power Commands -->
+  <div class="slide" data-slide="27">
+    <div class="slide-content">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background: var(--accent4-light); color: var(--accent4);">&#128373;</div>
+          Power Commands You'll Love
+        </div>
+        <div class="code-block">
+<span class="comment"># See who last changed each line (blame mode)</span>
+<span class="cmd">git blame</span> src/login.js
+
+<span class="comment"># Search all commits for when a string was added</span>
+<span class="cmd">git log</span> <span class="flag">-S</span> <span class="ok">"jwt.decode"</span> <span class="flag">--oneline</span>
+
+<span class="comment"># Stash half-done work before a context switch</span>
+<span class="cmd">git stash push</span> <span class="flag">-m</span> <span class="ok">"WIP: oauth flow half done"</span>
+<span class="cmd">git stash pop</span>     <span class="comment"># bring it back</span>
+
+<span class="comment"># Cherry-pick a single commit onto another branch</span>
+<span class="cmd">git cherry-pick</span> a1b2c3d
+
+<span class="comment"># See a visual branch graph</span>
+<span class="cmd">git log</span> <span class="flag">--oneline --graph --all --decorate</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 27: Section 5 Secret Push Problem -->
+  <div class="slide" data-slide="28">
+    <div class="slide-content">
+      <div class="problem">
+        <div class="problem-label">"I accidentally pushed .env with secrets!"</div>
+        <p style="margin-bottom: 16px;">Sam pushed a <code>.env</code> file with real API keys. This is a serious security incident.</p>
+        <div class="code-block">
+<span class="comment"># 1. Remove it from tracking immediately</span>
+<span class="cmd">git rm --cached</span> .env
+<span class="cmd">echo</span> <span class="ok">".env"</span> >> .gitignore
+<span class="cmd">git commit</span> <span class="flag">-m</span> <span class="ok">"security: remove .env from tracking"</span>
+<span class="cmd">git push</span>
+
+<span class="comment"># 2. Rotate ALL exposed secrets IMMEDIATELY
+# 3. Use git-filter-repo to purge from history if needed</span>
+        </div>
+        <div class="tip">Set up <strong>secret scanning</strong> in GitHub. Use <code>pre-commit</code> hooks to block .env pushes.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 28: Section 5 Exercise -->
+  <div class="slide" data-slide="29">
+    <div class="slide-content">
+      <div class="exercise">
+        <div class="exercise-header">
+          <div class="exercise-title">Exercise 5 - Team Scenarios</div>
+          <div class="score-badge">10 Marks</div>
+        </div>
+        <ul class="q-list">
+          <li>
+            <span class="q-num">Q1</span>
+            <span>Classify with Conventional Commits: (a) "Added dark mode" (b) "Typo fix in readme" (c) "Updated test for auth" (d) "Remove unused imports"</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q2</span>
+            <span>Noor is mid-feature and gets a critical bug to fix. What command helps pause work safely? Write the commands.</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q3</span>
+            <span>Dev needs a one-line fix from Sam's unmerged branch NOW. What command would Dev use?</span>
+            <span class="q-pts">2 pts</span>
+          </li>
+          <li>
+            <span class="q-num">Q4</span>
+            <span>Priya pushed <code>.env</code> with DB credentials. Write the action plan: Git steps AND security actions.</span>
+            <span class="q-pts">4 pts</span>
+          </li>
+        </ul>
+        <div class="quiz-form-container hidden" id="quizForm-29"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 29: Scorecard -->
+  <div class="slide" data-slide="30">
+    <div class="slide-content">
+      <div class="scorecard">
+        <h2>Workshop Scorecard</h2>
+        <p style="color: var(--muted); margin-top: 8px;">5 sections · 5 exercises · 30 minutes</p>
+        <div class="total-marks">50 Marks</div>
+        <div class="grade-row">
+          <div class="grade-item">
+            <div class="grade-range" style="color: var(--accent2)">0-24</div>
+            <div class="grade-label">Git Confused<br>Review fundamentals</div>
+          </div>
+          <div class="grade-item">
+            <div class="grade-range" style="color: var(--yellow)">25-34</div>
+            <div class="grade-label">Git Going<br>Solid foundation</div>
+          </div>
+          <div class="grade-item">
+            <div class="grade-range" style="color: var(--accent)">35-44</div>
+            <div class="grade-label">Git Good<br>Team-ready</div>
+          </div>
+          <div class="grade-item">
+            <div class="grade-range" style="color: var(--accent3)">45-50</div>
+            <div class="grade-label">Git Wizard<br>Teach others!</div>
+          </div>
+        </div>
+        <div class="marks-breakdown">
+          <h3>Marks Breakdown</h3>
+          <div class="marks-item"><span>Exercise 1 - Why Git Exists</span><span class="marks-value">10 marks</span></div>
+          <div class="marks-item"><span>Exercise 2 - Daily Git Flow</span><span class="marks-value">10 marks</span></div>
+          <div class="marks-item"><span>Exercise 3 - Branching Superpower</span><span class="marks-value">10 marks</span></div>
+          <div class="marks-item"><span>Exercise 4 - Merge Conflicts</span><span class="marks-value">10 marks</span></div>
+          <div class="marks-item"><span>Exercise 5 - Team Best Practices</span><span class="marks-value">10 marks</span></div>
+        </div>
+        <div id="quizLeaderboard" class="quiz-leaderboard"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 30: End -->
+  <div class="slide" data-slide="31">
+    <div class="slide-content" style="text-align: center;">
+      <div class="section-header" style="margin-bottom: 40px;">
+        <h1 class="section-title" style="font-size: 2.5rem;">Thank You!</h1>
+        <p class="section-desc" style="font-size: 1.125rem; margin-top: 16px;">Now go forth and Git Good together.</p>
+      </div>
+      <div class="code-block" style="display: inline-block; text-align: left;">
+<span class="cmd">git commit</span> <span class="flag">-m</span> <span class="ok">"chore: become a git master"</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION BAR (shown only to presenter) -->
+<nav class="nav-bar hidden" id="navBar">
+  <div class="nav-progress">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-text" id="progressText">1 / 31</div>
+  </div>
+  <div class="nav-buttons">
+    <button class="nav-btn secondary" id="prevBtn" disabled>
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      <span>Back</span>
+    </button>
+    <button class="nav-btn primary" id="nextBtn">
+      <span>Next</span>
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- SLIDE INDICATOR -->
+<div class="slide-indicator" id="slideIndicator">Slide 1 / 31</div>
+
+<!-- KEYBOARD HINT (shown only to presenter) -->
+<div class="keyboard-hint hidden" id="keyboardHint">
+  <div class="key">← →</div>
+  <div class="key">Space</div>
+</div>
+
+<!-- PeerJS Library -->
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
