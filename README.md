@@ -3,9 +3,8 @@
 **PeerPresent** is a Progressive Web App for running **interactive presentations** over the network. The presenter shares slides in real time with the team via **WebRTC** (PeerJS). Viewers stay in sync with the presenter and can **interact**—answer quizzes, respond to exercises, and participate in hands-on sections.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Vibe-Coded-purple?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/90%25%20Vibe%20Coded-purple?style=for-the-badge&logo=github" />
 </p>
-
 
 ## Features
 

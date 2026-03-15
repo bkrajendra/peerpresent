@@ -2,6 +2,10 @@
 
 I had to run a 40-minute hands-on Git session for my team-one of those Friday fun-learning things. The problem was simple: I didn't want it to feel like a typical one-way presentation. You know the drill-someone shares their screen, talks for an hour, and everyone zones out. I wanted something different.
 
+
+GitHub Repository: https://github.com/bkrajendra/peerpresent.git
+
+
 ## The Real Requirements
 
 A few things were clear from the start:
