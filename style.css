@@ -1043,6 +1043,179 @@ code {
     color: var(--accent3);
 }
 
+.presenter-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.presenter-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.presenter-edit-btn:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.presenter-edit-btn svg {
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+/* PRESENTATION JSON EDITOR OVERLAY */
+.presentation-editor-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.presentation-editor-overlay.hidden {
+    display: none;
+}
+
+.presentation-editor-panel {
+    width: min(960px, 100%);
+    /* Explicit height so flex children (editor mount) can fill the dialog */
+    height: min(90vh, 900px);
+    max-height: min(90vh, 900px);
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.presentation-editor-header {
+    padding: 20px 24px 12px;
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+.presentation-editor-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.presentation-editor-hint {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.json-editor-mount {
+    flex: 1 1 0%;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Fill the flex slot; JSONEditor defaults to a short height without this */
+.json-editor-mount > .jsoneditor {
+    position: absolute !important;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    border: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box;
+}
+
+.json-editor-mount .jsoneditor-menu {
+    border-bottom: 1px solid var(--border-light) !important;
+    flex-shrink: 0;
+}
+
+/* Code / tree body takes remaining space below the menu */
+.json-editor-mount .jsoneditor-outer {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: auto !important;
+}
+
+.json-editor-mount .ace-jsoneditor,
+.json-editor-mount .jsoneditor-vue {
+    min-height: 100% !important;
+}
+
+.json-editor-mount .ace_editor {
+    height: 100% !important;
+}
+
+.json-editor-mount .jsoneditor-tree {
+    min-height: 100% !important;
+}
+
+.presentation-editor-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-light);
+    flex-shrink: 0;
+    background: var(--bg);
+}
+
+.presentation-editor-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.presentation-editor-btn.secondary {
+    background: var(--surface);
+    color: var(--text-secondary);
+}
+
+.presentation-editor-btn.secondary:hover {
+    background: var(--border-light);
+    color: var(--text);
+}
+
+.presentation-editor-btn.primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.presentation-editor-btn.primary:hover {
+    filter: brightness(1.05);
+}
+
 /* CLIENT BAR */
 .client-bar {
     position: fixed;

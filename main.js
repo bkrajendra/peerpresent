@@ -28,13 +28,19 @@ const PEER_CONFIG = {
 const ROOM_PREFIX = 'git-workshop-'; // Prefix for room IDs to avoid collisions
 const CLIENT_ID_STORAGE_KEY = 'git-workshop-client-id';
 const QUIZ_STORAGE_KEY = 'git-workshop-quiz-results';
-const EXERCISE_SLIDES = [5, 11, 17, 24, 29]; // slide indices for exercises 1-5
+let EXERCISE_SLIDES = [5, 11, 17, 24, 29]; // slide indices for exercises 1-5 (overridable from saved presentation)
 const TIME_BONUS_POINTS = [5, 4, 3, 2, 1]; // bonus for 1st, 2nd, 3rd, 4th, 5th submitter
+
+const PRESENTATION_STORAGE_KEY = 'peerpresent-presentation-v1';
+
+function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
 
 // =============================================
 // QUIZ DATA (exercise index 1-5, multiple choice)
 // =============================================
-const QUIZ_DATA = {
+const DEFAULT_QUIZ_DATA = {
     1: {
         title: 'Exercise 1 - Quick Fire Round',
         questions: [
@@ -159,6 +165,12 @@ const QUIZ_DATA = {
     }
 };
 
+/** Runtime quiz data (may be replaced from localStorage presentation JSON) */
+let quizDataEffective = deepClone(DEFAULT_QUIZ_DATA);
+
+/** Slide index where the live leaderboard is shown */
+let LEADERBOARD_SLIDE_INDEX = 30;
+
 // =============================================
 // STATE
 // =============================================
@@ -169,10 +181,15 @@ let isPresenter = false;
 let roomCode = '';
 let clientId = '';
 
-// Slide state
-const slides = document.querySelectorAll('.slide');
-const totalSlides = slides.length;
+// Slide state (rebuilt when presentation is loaded from storage)
+let slides = [];
+let totalSlides = 0;
 let currentSlide = 0;
+
+function refreshSlideRefs() {
+    slides = document.querySelectorAll('.slide');
+    totalSlides = slides.length;
+}
 
 // DOM Elements
 const startOverlay = document.getElementById('startOverlay');
@@ -192,6 +209,154 @@ const nextBtn = document.getElementById('nextBtn');
 const progressFill = document.getElementById('progressFill');
 const progressText = document.getElementById('progressText');
 const slideIndicator = document.getElementById('slideIndicator');
+const editPresentationBtn = document.getElementById('editPresentationBtn');
+const presentationEditorOverlay = document.getElementById('presentationEditorOverlay');
+const jsonEditorMount = document.getElementById('jsonEditorMount');
+const presentationEditorCancel = document.getElementById('presentationEditorCancel');
+const presentationEditorReset = document.getElementById('presentationEditorReset');
+const presentationEditorSave = document.getElementById('presentationEditorSave');
+
+let presentationJsonEditor = null;
+
+// =============================================
+// PRESENTATION JSON (localStorage + editor)
+// =============================================
+
+function applyStoredPresentation() {
+    const raw = localStorage.getItem(PRESENTATION_STORAGE_KEY);
+    if (!raw) return;
+    try {
+        const data = JSON.parse(raw);
+        if (!data.slides || !Array.isArray(data.slides) || data.slides.length === 0) return;
+        const container = document.querySelector('.presentation');
+        if (!container) return;
+
+        if (data.meta && typeof data.meta.pageTitle === 'string') {
+            document.title = data.meta.pageTitle;
+        }
+        if (Array.isArray(data.exerciseSlides) && data.exerciseSlides.length > 0) {
+            EXERCISE_SLIDES = data.exerciseSlides;
+        }
+        if (typeof data.leaderboardSlideIndex === 'number') {
+            LEADERBOARD_SLIDE_INDEX = data.leaderboardSlideIndex;
+        }
+        if (data.quizData && typeof data.quizData === 'object') {
+            quizDataEffective = deepClone(data.quizData);
+        }
+
+        const html = data.slides.map((s, i) => {
+            const rawHtml = typeof s === 'string' ? s : (s.outerHtml || s.html || '');
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = rawHtml.trim();
+            const slideEl = wrapper.firstElementChild;
+            if (!slideEl) return '';
+            slideEl.setAttribute('data-slide', String(i));
+            slideEl.classList.toggle('active', i === 0);
+            return slideEl.outerHTML;
+        }).join('');
+        container.innerHTML = html;
+        currentSlide = 0;
+    } catch (e) {
+        console.error('Failed to apply stored presentation', e);
+    }
+}
+
+function buildPresentationJson() {
+    const slideEls = document.querySelectorAll('.presentation .slide');
+    return {
+        version: 1,
+        meta: {
+            pageTitle: document.title
+        },
+        slides: Array.from(slideEls).map(el => ({ outerHtml: el.outerHTML })),
+        exerciseSlides: EXERCISE_SLIDES.slice(),
+        leaderboardSlideIndex: LEADERBOARD_SLIDE_INDEX,
+        quizData: deepClone(quizDataEffective)
+    };
+}
+
+function loadJsonEditorScript() {
+    if (window.JSONEditor) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/jsoneditor@10.0.3/dist/jsoneditor.min.css';
+        document.head.appendChild(link);
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/jsoneditor@10.0.3/dist/jsoneditor.min.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load JSONEditor'));
+        document.body.appendChild(script);
+    });
+}
+
+function openPresentationEditor() {
+    loadJsonEditorScript()
+        .then(() => {
+            presentationEditorOverlay.classList.remove('hidden');
+            presentationEditorOverlay.setAttribute('aria-hidden', 'false');
+
+            let data;
+            try {
+                const raw = localStorage.getItem(PRESENTATION_STORAGE_KEY);
+                data = raw ? JSON.parse(raw) : buildPresentationJson();
+            } catch (e) {
+                console.error(e);
+                data = buildPresentationJson();
+            }
+
+            jsonEditorMount.innerHTML = '';
+            const options = {
+                mode: 'code',
+                modes: ['code', 'tree', 'view'],
+                name: 'presentation',
+                statusBar: false,
+                mainMenuBar: true
+            };
+            presentationJsonEditor = new window.JSONEditor(jsonEditorMount, options);
+            presentationJsonEditor.set(data);
+            requestAnimationFrame(() => {
+                if (presentationJsonEditor && typeof presentationJsonEditor.resize === 'function') {
+                    presentationJsonEditor.resize();
+                }
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Could not load the JSON editor. Check your network connection.');
+        });
+}
+
+function closePresentationEditor() {
+    presentationEditorOverlay.classList.add('hidden');
+    presentationEditorOverlay.setAttribute('aria-hidden', 'true');
+    if (presentationJsonEditor) {
+        presentationJsonEditor.destroy();
+        presentationJsonEditor = null;
+    }
+    jsonEditorMount.innerHTML = '';
+}
+
+function savePresentationFromEditor() {
+    if (!presentationJsonEditor) return;
+    try {
+        const data = presentationJsonEditor.get();
+        if (!data.slides || !Array.isArray(data.slides) || data.slides.length === 0) {
+            alert('Invalid JSON: "slides" must be a non-empty array.');
+            return;
+        }
+        localStorage.setItem(PRESENTATION_STORAGE_KEY, JSON.stringify(data));
+        window.location.reload();
+    } catch (e) {
+        alert('Invalid JSON: ' + (e.message || String(e)));
+    }
+}
+
+function resetPresentationToDefault() {
+    if (!confirm('Remove the saved presentation from this browser and reload the built-in default?')) return;
+    localStorage.removeItem(PRESENTATION_STORAGE_KEY);
+    window.location.reload();
+}
 
 // =============================================
 // UTILITY FUNCTIONS
@@ -245,9 +410,9 @@ function showQuizForm(exerciseIndex, startTime) {
     if (submittedExercises[exerciseIndex]) return;
     const slideIndex = EXERCISE_SLIDES[exerciseIndex - 1];
     const container = getQuizFormContainer(slideIndex);
-    if (!container || !QUIZ_DATA[exerciseIndex]) return;
+    if (!container || !quizDataEffective[exerciseIndex]) return;
     quizStartTime = startTime || Date.now();
-    const quiz = QUIZ_DATA[exerciseIndex];
+    const quiz = quizDataEffective[exerciseIndex];
     container.innerHTML = '';
     const form = document.createElement('form');
     form.className = 'quiz-form';
@@ -296,7 +461,7 @@ function submitQuiz(exerciseIndex) {
     const container = getQuizFormContainer(slideIndex);
     const form = container ? container.querySelector('.quiz-form') : null;
     if (!form) return;
-    const quiz = QUIZ_DATA[exerciseIndex];
+    const quiz = quizDataEffective[exerciseIndex];
     const answers = {};
     quiz.questions.forEach(q => {
         const radio = form.querySelector(`input[name="q${q.id}"]:checked`);
@@ -322,7 +487,7 @@ function submitQuiz(exerciseIndex) {
 }
 
 function scoreQuiz(exerciseIndex, answers) {
-    const quiz = QUIZ_DATA[exerciseIndex];
+    const quiz = quizDataEffective[exerciseIndex];
     if (!quiz) return 0;
     let score = 0;
     quiz.questions.forEach(q => {
@@ -357,7 +522,7 @@ function handleQuizAnswerFromClient(data) {
     const order = list.length;
     const timeBonus = order < TIME_BONUS_POINTS.length ? TIME_BONUS_POINTS[order] : 0;
     saveQuizSubmission(cid, exerciseIndex, score, timeBonus, submitTime);
-    if (currentSlide === 30) renderLeaderboard();
+    if (currentSlide === LEADERBOARD_SLIDE_INDEX) renderLeaderboard();
 }
 
 function getLeaderboardData() {
@@ -454,7 +619,7 @@ function goToSlide(index, broadcast = true) {
                 startTime: Date.now()
             });
         }
-        if (currentSlide === 30) {
+        if (currentSlide === LEADERBOARD_SLIDE_INDEX) {
             renderLeaderboard();
         }
     }
@@ -607,6 +772,8 @@ function setupPresenterUI() {
     keyboardHint.classList.remove('hidden');
     roomCodeDisplay.textContent = roomCode;
     updateUI();
+
+    editPresentationBtn.onclick = openPresentationEditor;
     
     // Enable keyboard controls
     setupKeyboardControls();
@@ -759,7 +926,8 @@ function updateSyncStatus(connected) {
 function setupKeyboardControls() {
     document.addEventListener('keydown', (e) => {
         if (!isPresenter) return;
-        
+        if (presentationEditorOverlay && !presentationEditorOverlay.classList.contains('hidden')) return;
+
         if (e.key === 'ArrowRight' || e.key === ' ') {
             e.preventDefault();
             nextSlide();
@@ -786,7 +954,8 @@ function setupTouchControls() {
 
     document.addEventListener('touchend', (e) => {
         if (!isPresenter) return;
-        
+        if (presentationEditorOverlay && !presentationEditorOverlay.classList.contains('hidden')) return;
+
         touchEndX = e.changedTouches[0].screenX;
         const diff = touchStartX - touchEndX;
         if (Math.abs(diff) > 50) {
@@ -801,6 +970,20 @@ function setupTouchControls() {
 // =============================================
 
 function init() {
+    applyStoredPresentation();
+    refreshSlideRefs();
+
+    presentationEditorCancel.addEventListener('click', closePresentationEditor);
+    presentationEditorReset.addEventListener('click', resetPresentationToDefault);
+    presentationEditorSave.addEventListener('click', savePresentationFromEditor);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        if (presentationEditorOverlay && !presentationEditorOverlay.classList.contains('hidden')) {
+            closePresentationEditor();
+        }
+    });
+
     // Show "Start as Presenter" only when ?mode=presenter is in the URL
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('mode') === 'presenter') {

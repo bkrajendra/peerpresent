@@ -47,11 +47,19 @@
     <span class="presenter-badge">PRESENTER</span>
     <span class="room-code">Room: <strong id="roomCodeDisplay">----</strong></span>
   </div>
-  <div class="connected-clients">
-    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-    </svg>
-    <span id="clientCount">0</span> connected
+  <div class="presenter-bar-actions">
+    <button type="button" id="editPresentationBtn" class="presenter-edit-btn">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+      Create / Edit presentation
+    </button>
+    <div class="connected-clients">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+      </svg>
+      <span id="clientCount">0</span> connected
+    </div>
   </div>
 </div>
 
@@ -827,6 +835,22 @@
 <div class="keyboard-hint hidden" id="keyboardHint">
   <div class="key">← →</div>
   <div class="key">Space</div>
+</div>
+
+<!-- PRESENTATION JSON EDITOR (presenter only) -->
+<div id="presentationEditorOverlay" class="presentation-editor-overlay hidden" aria-hidden="true">
+  <div class="presentation-editor-panel" role="dialog" aria-labelledby="presentationEditorTitle">
+    <header class="presentation-editor-header">
+      <h2 id="presentationEditorTitle">Create / Edit presentation</h2>
+      <p class="presentation-editor-hint">Edit the presentation as JSON. Saving stores it in this browser only (local storage), then reloads the page.</p>
+    </header>
+    <div id="jsonEditorMount" class="json-editor-mount"></div>
+    <footer class="presentation-editor-footer">
+      <button type="button" id="presentationEditorCancel" class="presentation-editor-btn secondary">Cancel</button>
+      <button type="button" id="presentationEditorReset" class="presentation-editor-btn secondary">Reset to default</button>
+      <button type="button" id="presentationEditorSave" class="presentation-editor-btn primary">Save &amp; reload</button>
+    </footer>
+  </div>
 </div>
 
 <!-- PeerJS Library -->
