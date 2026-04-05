@@ -1,4 +1,5 @@
 # PeerPresent
+![Presenter View](p2.png)
 
 **PeerPresent** is a Progressive Web App for running **interactive presentations** over the network. The presenter shares slides in real time with the team via **WebRTC** (PeerJS). Viewers stay in sync with the presenter and can **interact**—answer quizzes, respond to exercises, and participate in hands-on sections.
 
