@@ -799,6 +799,43 @@ code {
     font-weight: 500;
 }
 
+.leaderboard-name {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.leaderboard-name-text {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.leaderboard-anon {
+    font-style: italic;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.leaderboard-id-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.leaderboard-trophy {
+    font-size: 22px;
+    line-height: 1;
+    display: inline-block;
+}
+
+.leaderboard-row-top td {
+    background: linear-gradient(90deg, rgba(250, 204, 21, 0.08), transparent);
+}
+
+.leaderboard-row-top .leaderboard-name-text {
+    font-weight: 700;
+}
+
 .leaderboard-marks,
 .leaderboard-bonus {
     font-family: 'JetBrains Mono', monospace;
@@ -947,6 +984,29 @@ code {
     color: var(--text);
     background: var(--surface);
     transition: border-color 0.2s;
+}
+
+.learner-input {
+    padding: 14px 18px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color 0.2s;
+}
+
+.learner-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.learner-input::placeholder {
+    color: var(--muted);
+    font-weight: 400;
 }
 
 .room-input:focus {

@@ -27,7 +27,9 @@ const PEER_CONFIG = {
 
 const ROOM_PREFIX = 'git-workshop-'; // Prefix for room IDs to avoid collisions
 const CLIENT_ID_STORAGE_KEY = 'git-workshop-client-id';
+const LEARNER_NAME_STORAGE_KEY = 'git-workshop-learner-name';
 const QUIZ_STORAGE_KEY = 'git-workshop-quiz-results';
+const TROPHIES = ['🥇', '🥈', '🥉'];
 let EXERCISE_SLIDES = [5, 11, 17, 24, 29]; // slide indices for exercises 1-5 (overridable from saved presentation)
 const TIME_BONUS_POINTS = [5, 4, 3, 2, 1]; // bonus for 1st, 2nd, 3rd, 4th, 5th submitter
 
@@ -180,6 +182,7 @@ let presenterConnection = null; // For client: connection to presenter
 let isPresenter = false;
 let roomCode = '';
 let clientId = '';
+let learnerName = '';
 
 // Slide state (rebuilt when presentation is loaded from storage)
 let slides = [];
@@ -196,6 +199,7 @@ const startOverlay = document.getElementById('startOverlay');
 const startPresenterBtn = document.getElementById('startPresenterBtn');
 const joinSessionBtn = document.getElementById('joinSessionBtn');
 const roomCodeInput = document.getElementById('roomCodeInput');
+const learnerNameInput = document.getElementById('learnerNameInput');
 const connectionStatus = document.getElementById('connectionStatus');
 const presenterBar = document.getElementById('presenterBar');
 const clientBar = document.getElementById('clientBar');
@@ -386,6 +390,22 @@ function getOrCreateClientId() {
     return newId;
 }
 
+function getStoredLearnerName() {
+    try {
+        return (localStorage.getItem(LEARNER_NAME_STORAGE_KEY) || '').trim();
+    } catch (e) {
+        return '';
+    }
+}
+
+function setStoredLearnerName(name) {
+    try {
+        localStorage.setItem(LEARNER_NAME_STORAGE_KEY, name);
+    } catch (e) {
+        // ignore (private mode etc.)
+    }
+}
+
 function hideOverlay() {
     startOverlay.classList.add('hidden');
 }
@@ -473,6 +493,7 @@ function submitQuiz(exerciseIndex) {
         type: 'quiz-answer',
         exerciseIndex,
         clientId,
+        name: learnerName,
         answers,
         submitTime
     };
@@ -499,10 +520,21 @@ function scoreQuiz(exerciseIndex, answers) {
 function loadQuizResults() {
     try {
         const raw = localStorage.getItem(QUIZ_STORAGE_KEY);
-        return raw ? JSON.parse(raw) : { exerciseSubmissions: {} };
+        const parsed = raw ? JSON.parse(raw) : {};
+        if (!parsed.exerciseSubmissions) parsed.exerciseSubmissions = {};
+        if (!parsed.clientNames) parsed.clientNames = {};
+        return parsed;
     } catch (e) {
-        return { exerciseSubmissions: {} };
+        return { exerciseSubmissions: {}, clientNames: {} };
     }
+}
+
+function saveClientName(cid, name) {
+    if (!cid || !name) return;
+    const data = loadQuizResults();
+    data.clientNames[cid] = name;
+    localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(data));
+    if (currentSlide === LEADERBOARD_SLIDE_INDEX) renderLeaderboard();
 }
 
 function saveQuizSubmission(clientId, exerciseIndex, score, timeBonus, submitTime) {
@@ -515,18 +547,20 @@ function saveQuizSubmission(clientId, exerciseIndex, score, timeBonus, submitTim
 }
 
 function handleQuizAnswerFromClient(data) {
-    const { exerciseIndex, clientId: cid, answers, submitTime } = data;
+    const { exerciseIndex, clientId: cid, name, answers, submitTime } = data;
     const score = scoreQuiz(exerciseIndex, answers);
     const data_ = loadQuizResults();
     const list = (data_.exerciseSubmissions || {})[exerciseIndex] || [];
     const order = list.length;
     const timeBonus = order < TIME_BONUS_POINTS.length ? TIME_BONUS_POINTS[order] : 0;
     saveQuizSubmission(cid, exerciseIndex, score, timeBonus, submitTime);
+    if (name) saveClientName(cid, name);
     if (currentSlide === LEADERBOARD_SLIDE_INDEX) renderLeaderboard();
 }
 
 function getLeaderboardData() {
     const data = loadQuizResults();
+    const names = data.clientNames || {};
     const totals = {};
     Object.keys(data.exerciseSubmissions || {}).forEach(exKey => {
         const list = data.exerciseSubmissions[exKey] || [];
@@ -538,8 +572,15 @@ function getLeaderboardData() {
     });
     return Object.values(totals).map(o => ({
         ...o,
+        name: names[o.clientId] || '',
         total: o.totalScore + o.totalBonus
     })).sort((a, b) => b.total - a.total);
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
 }
 
 function renderLeaderboard() {
@@ -556,22 +597,31 @@ function renderLeaderboard() {
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Participant (ID)</th>
+                    <th>Participant</th>
                     <th>Marks</th>
                     <th>Speed bonus</th>
                     <th>Total</th>
                 </tr>
             </thead>
             <tbody>
-                ${rows.map((r, i) => `
-                    <tr class="leaderboard-row">
-                        <td class="leaderboard-rank">${i + 1}</td>
-                        <td class="leaderboard-id">${r.clientId}</td>
+                ${rows.map((r, i) => {
+                    const trophy = TROPHIES[i] || '';
+                    const displayName = r.name ? escapeHtml(r.name) : `<span class="leaderboard-anon">Anonymous</span>`;
+                    const rankCell = trophy
+                        ? `<span class="leaderboard-trophy" aria-label="Rank ${i + 1}">${trophy}</span>`
+                        : (i + 1);
+                    return `
+                    <tr class="leaderboard-row${trophy ? ' leaderboard-row-top' : ''}">
+                        <td class="leaderboard-rank">${rankCell}</td>
+                        <td class="leaderboard-name">
+                            <span class="leaderboard-name-text">${displayName}</span>
+                            <span class="leaderboard-id-sub">${escapeHtml(r.clientId)}</span>
+                        </td>
                         <td class="leaderboard-marks">${r.totalScore}</td>
                         <td class="leaderboard-bonus">+${r.totalBonus}</td>
                         <td class="leaderboard-total"><strong>${r.total}</strong></td>
-                    </tr>
-                `).join('')}
+                    </tr>`;
+                }).join('')}
             </tbody>
         </table>
     `;
@@ -680,7 +730,13 @@ function handleMessage(message) {
                     handleQuizAnswerFromClient(data);
                 }
                 break;
-            
+
+            case 'client-hello':
+                if (isPresenter && data.clientId && data.name) {
+                    saveClientName(data.clientId, data.name);
+                }
+                break;
+
             case 'quiz-results':
                 console.log('Quiz results:', data);
                 break;
@@ -815,6 +871,15 @@ function tryConnectToPresenter(presenterPeerId, attempt) {
         clientConnectRetryCount = 0; // reset for next session
         console.log('Connected to presenter');
         showStatus('Connected to presenter!', 'success');
+        try {
+            presenterConnection.send(JSON.stringify({
+                type: 'client-hello',
+                clientId,
+                name: learnerName
+            }));
+        } catch (e) {
+            console.warn('Failed to send client-hello', e);
+        }
         setTimeout(() => {
             hideOverlay();
             setupClientUI();
@@ -838,12 +903,22 @@ function tryConnectToPresenter(presenterPeerId, attempt) {
 
 function joinSession() {
     const code = roomCodeInput.value.trim();
-    
+    const name = (learnerNameInput ? learnerNameInput.value : '').trim();
+
+    if (!name) {
+        showStatus('Please enter your name to join.', 'error');
+        if (learnerNameInput) learnerNameInput.focus();
+        return;
+    }
+
     if (code.length !== 4 || !/^\d{4}$/.test(code)) {
         showStatus('Please enter a valid 4-digit code', 'error');
         return;
     }
-    
+
+    learnerName = name;
+    setStoredLearnerName(name);
+
     isPresenter = false;
     roomCode = code;
     const presenterPeerId = ROOM_PREFIX + roomCode;
@@ -911,7 +986,8 @@ function setupClientUI() {
 
 function updateSyncStatus(connected) {
     if (connected) {
-        syncStatus.innerHTML = clientId +' <span class="sync-dot"></span> Synced with presenter';
+        const who = learnerName ? `${escapeHtml(learnerName)} · ${clientId}` : clientId;
+        syncStatus.innerHTML = who + ' <span class="sync-dot"></span> Synced with presenter';
         syncStatus.classList.remove('disconnected');
     } else {
         syncStatus.innerHTML = '<span class="sync-dot"></span> Disconnected - trying to reconnect...';
@@ -1005,6 +1081,24 @@ function init() {
     roomCodeInput.addEventListener('input', (e) => {
         e.target.value = e.target.value.replace(/[^0-9]/g, '');
     });
+
+    // Prefill learner name from storage and persist as user types
+    if (learnerNameInput) {
+        const stored = getStoredLearnerName();
+        if (stored) learnerNameInput.value = stored;
+        learnerNameInput.addEventListener('change', () => {
+            setStoredLearnerName(learnerNameInput.value.trim());
+        });
+        learnerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (!roomCodeInput.value.trim()) {
+                    roomCodeInput.focus();
+                } else {
+                    joinSession();
+                }
+            }
+        });
+    }
     
     // Navigation buttons (for presenter)
     prevBtn.addEventListener('click', prevSlide);
