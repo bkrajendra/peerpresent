@@ -226,43 +226,60 @@ let presentationJsonEditor = null;
 // PRESENTATION JSON (localStorage + editor)
 // =============================================
 
+function applyPresentationData(data) {
+    if (!data || !data.slides || !Array.isArray(data.slides) || data.slides.length === 0) return false;
+    const container = document.querySelector('.presentation');
+    if (!container) return false;
+
+    if (data.meta && typeof data.meta.pageTitle === 'string') {
+        document.title = data.meta.pageTitle;
+    }
+    if (Array.isArray(data.exerciseSlides) && data.exerciseSlides.length > 0) {
+        EXERCISE_SLIDES = data.exerciseSlides;
+    }
+    if (typeof data.leaderboardSlideIndex === 'number') {
+        LEADERBOARD_SLIDE_INDEX = data.leaderboardSlideIndex;
+    }
+    if (data.quizData && typeof data.quizData === 'object') {
+        quizDataEffective = deepClone(data.quizData);
+    }
+
+    const html = data.slides.map((s, i) => {
+        const rawHtml = typeof s === 'string' ? s : (s.outerHtml || s.html || '');
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = rawHtml.trim();
+        const slideEl = wrapper.firstElementChild;
+        if (!slideEl) return '';
+        slideEl.setAttribute('data-slide', String(i));
+        slideEl.classList.toggle('active', i === 0);
+        return slideEl.outerHTML;
+    }).join('');
+    container.innerHTML = html;
+    currentSlide = 0;
+    return true;
+}
+
 function applyStoredPresentation() {
     const raw = localStorage.getItem(PRESENTATION_STORAGE_KEY);
     if (!raw) return;
     try {
-        const data = JSON.parse(raw);
-        if (!data.slides || !Array.isArray(data.slides) || data.slides.length === 0) return;
-        const container = document.querySelector('.presentation');
-        if (!container) return;
-
-        if (data.meta && typeof data.meta.pageTitle === 'string') {
-            document.title = data.meta.pageTitle;
-        }
-        if (Array.isArray(data.exerciseSlides) && data.exerciseSlides.length > 0) {
-            EXERCISE_SLIDES = data.exerciseSlides;
-        }
-        if (typeof data.leaderboardSlideIndex === 'number') {
-            LEADERBOARD_SLIDE_INDEX = data.leaderboardSlideIndex;
-        }
-        if (data.quizData && typeof data.quizData === 'object') {
-            quizDataEffective = deepClone(data.quizData);
-        }
-
-        const html = data.slides.map((s, i) => {
-            const rawHtml = typeof s === 'string' ? s : (s.outerHtml || s.html || '');
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = rawHtml.trim();
-            const slideEl = wrapper.firstElementChild;
-            if (!slideEl) return '';
-            slideEl.setAttribute('data-slide', String(i));
-            slideEl.classList.toggle('active', i === 0);
-            return slideEl.outerHTML;
-        }).join('');
-        container.innerHTML = html;
-        currentSlide = 0;
+        applyPresentationData(JSON.parse(raw));
     } catch (e) {
         console.error('Failed to apply stored presentation', e);
     }
+}
+
+function getCurrentPresentationData() {
+    try {
+        const raw = localStorage.getItem(PRESENTATION_STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && Array.isArray(parsed.slides) && parsed.slides.length > 0) return parsed;
+        }
+    } catch (e) {
+        console.warn('Stored presentation invalid, falling back to DOM', e);
+    }
+    return buildPresentationJson();
 }
 
 function buildPresentationJson() {
@@ -715,10 +732,19 @@ function handleMessage(message) {
         const data = typeof message === 'string' ? JSON.parse(message) : message;
         
         switch (data.type) {
+            case 'presentation':
+                if (!isPresenter) {
+                    if (applyPresentationData(data.data)) {
+                        refreshSlideRefs();
+                        updateUI();
+                    }
+                }
+                break;
+
             case 'slide':
                 goToSlide(data.slide, false);
                 break;
-            
+
             case 'quiz-start':
                 if (!isPresenter && data.slide === currentSlide) {
                     showQuizForm(data.exerciseIndex, data.startTime);
@@ -780,7 +806,14 @@ function startAsPresenter() {
         
         conn.on('open', () => {
             updateClientCount();
-            // Send current slide to new client
+            // Send the current presentation FIRST so the client renders the
+            // presenter's edited slides (not its own default/stored copy),
+            // then sync to the current slide. PeerJS reliable channel
+            // preserves message order.
+            const presentation = getCurrentPresentationData();
+            if (presentation) {
+                conn.send(JSON.stringify({ type: 'presentation', data: presentation }));
+            }
             conn.send(JSON.stringify({ type: 'slide', slide: currentSlide }));
         });
         
